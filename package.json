@@ -1,0 +1,26 @@
+{
+  "name": "retrojs",
+  "version": "0.0.1",
+  "description": "An i8080/z80 retro computer emulator in JavaScript and Go",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbgott/retrojs.git"
+  },
+  "keywords": [
+    "i8080",
+    "8080",
+    "z80",
+    "retro",
+    "cpm"
+  ],
+  "author": "Bjorn Gott <bbgott@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bbgott/retrojs/issues"
+  },
+  "homepage": "https://github.com/bbgott/retrojs#readme"
+}
