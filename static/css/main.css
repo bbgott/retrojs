@@ -1,0 +1,10 @@
+.terminal {
+    display:flex;
+    justify-content:left;
+    margin:20px 0 50px
+}
+.terminal .inner {
+    padding:10px 20px;
+    border-radius:4px;
+    background-color:#2D2E2C
+}
