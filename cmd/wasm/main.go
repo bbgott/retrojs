@@ -10,7 +10,7 @@ func sendMessageToJS(msgType, payload string) {
 }
 
 // receiveMessageFromJS is a Go function exposed to JS for receiving messages from JS
-func receiveMessageFromJS(this js.Value, args []js.Value) interface{} {
+func receiveMessageFromJS(_ js.Value, args []js.Value) interface{} {
 	if len(args) < 2 {
 		return nil
 	}
