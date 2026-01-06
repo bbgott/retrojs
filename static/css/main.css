@@ -1,3 +1,13 @@
+.terminal, .terminal .inner, #terminal, #terminal .xterm, #terminal .xterm * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+.terminal::-webkit-scrollbar, .terminal .inner::-webkit-scrollbar, #terminal::-webkit-scrollbar, #terminal .xterm::-webkit-scrollbar, #terminal .xterm *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+}
 body {
     background-color: #181a1b;
     /* Muted dark background for comfort */
@@ -14,7 +24,7 @@ body {
     overflow: hidden;
 }
 #terminal, #terminal .xterm, #terminal .xterm * {
-    font-family: 'VT323', monospace !important;
+    font-family: VT323, monospace !important;
     color: #39FF14 !important; /* Green phosphor */
 }
 .xterm-viewport.xterm-viewport {

@@ -1,3 +1,4 @@
+import "@fontsource/vt323";
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 
