@@ -49,6 +49,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     rows: 25,
     cursorBlink: true,
     fontFamily,
+    theme: {
+      foreground: '#39FF14',
+      cursor: '#39FF14',
+      cursorAccent: '#181a1b'
+    },
     scrollback: 0
   });
   const webFontsAddon = new WebFontsAddon();
