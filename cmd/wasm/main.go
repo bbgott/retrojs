@@ -41,7 +41,9 @@ func generateTestPattern() string {
 		for col := 1; col < 80; col++ {
 			pattern += string('A' + ((col - 1) % 26))
 		}
-		pattern += "\r\n"
+		if row < 24 {
+			pattern += "\r\n"
+		}
 	}
 	return pattern
 }
