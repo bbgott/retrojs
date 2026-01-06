@@ -1,3 +1,17 @@
+.terminal, .terminal .inner, #terminal, #terminal .xterm, #terminal .xterm * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+.terminal::-webkit-scrollbar, .terminal .inner::-webkit-scrollbar, #terminal::-webkit-scrollbar, #terminal .xterm::-webkit-scrollbar, #terminal .xterm *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+}
+body {
+    background-color: #181a1b;
+    /* Muted dark background for comfort */
+}
 .terminal {
     display:flex;
     justify-content:left;
@@ -6,22 +20,18 @@
 .terminal .inner {
     padding:10px 20px;
     border-radius:4px;
-    background-color:#2D2E2C
+    background-color:#2D2E2C;
+    overflow: hidden;
 }
 #terminal, #terminal .xterm, #terminal .xterm * {
-    font-family: 'VT323', monospace !important;
+    font-family: VT323, monospace !important;
     color: #39FF14 !important; /* Green phosphor */
 }
 .xterm-viewport.xterm-viewport {
-    scrollbar-width: thin;
+    scrollbar-width: none !important;
+    overflow: hidden !important;
 }
 .xterm-viewport::-webkit-scrollbar {
-    width: 10px;
-}
-.xterm-viewport::-webkit-scrollbar-track {
-    opacity: 0;
-}
-.xterm-viewport::-webkit-scrollbar-thumb {
-    min-height: 20px;
-    background-color: #ffffff20;
+    width: 0 !important;
+    display: none !important;
 }

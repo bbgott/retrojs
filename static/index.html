@@ -2,15 +2,8 @@
 <head>
     <meta charset="utf-8"/>
     <link rel="stylesheet" href="css/main.css" />
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script type="module" src="/main.js"></script>
     <script src="wasm_exec.js"></script>
-    <script>
-        const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-        });
-    </script>
     <title>RetroJS</title>
 </head>
 <body>
