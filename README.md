@@ -21,7 +21,7 @@ GOOS=js GOARCH=wasm go build -o static/main.wasm ./cmd/wasm
 Copy the Go WASM runtime to the static directory:
 
 ```bash
-cp $(go env GOROOT)/misc/wasm/wasm_exec.js static/
+cp $(go env GOROOT)/lib/wasm/wasm_exec.js static/
 ```
 
 ### 3. Install JS dependencies
