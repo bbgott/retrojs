@@ -13,15 +13,33 @@ body {
     /* Muted dark background for comfort */
 }
 .terminal {
-    display:flex;
-    justify-content:left;
-    margin:20px 0 50px
+    display: flex;
+    justify-content: center;
+    margin: 20px auto 50px auto;
+    width: 100%;
 }
+/* Default terminal inner styling */
 .terminal .inner {
-    padding:10px 20px;
-    border-radius:4px;
-    background-color:#2D2E2C;
-    overflow: hidden;
+        padding:10px 20px;
+        border-radius:4px;
+        background-color:#2D2E2C;
+        overflow: hidden;
+}
+
+/* Responsive overrides for mobile */
+@media (max-width: 600px) {
+    .terminal {
+        justify-content: stretch;
+        width: 100vw;
+        margin: 0;
+    }
+    .terminal .inner {
+        width: 100vw !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+        padding: 8px 2px !important;
+        border-radius: 0 !important;
+    }
 }
 #terminal, #terminal .xterm, #terminal .xterm * {
     font-family: VT323, monospace !important;
