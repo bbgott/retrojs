@@ -3,9 +3,10 @@ import react from '@vitejs/plugin-react';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  root: 'static',
+  root: '.',
+  publicDir: 'static',
   build: {
-    outDir: '../dist',
+    outDir: 'dist',
     emptyOutDir: true,
   },
   server: {
@@ -15,8 +16,8 @@ export default defineConfig({
     react(),
     viteStaticCopy({
       targets: [
-        { src: 'wasm_exec.js', dest: '.' },
-        { src: 'main.wasm', dest: '.' },
+        { src: 'static/wasm_exec.js', dest: '.' },
+        { src: 'static/main.wasm', dest: '.' },
       ],
     }),
   ],
