@@ -1,106 +1,89 @@
 import React, { useEffect, useRef } from 'react';
-import { Terminal } from '@xterm/xterm';
-import { WebFontsAddon, loadFonts } from '@xterm/addon-web-fonts';
-import '@xterm/xterm/css/xterm.css';
-import '@fontsource/vt323';
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-
+import Terminal from './components/Terminal';
 
 export default function App() {
   const terminalRef = useRef(null);
 
+  // WASM and message-passing logic
   useEffect(() => {
-    let term;
-    let webFontsAddon;
-    let go;
-    let goInstance;
-    let wasmLoaded = false;
+    // Logging utility
+    const isDev = import.meta.env.MODE === 'development';
+    function log(...args) {
+      if (isDev) console.log('[retrojs]', ...args);
+    }
+    function warn(...args) {
+      if (isDev) console.warn('[retrojs]', ...args);
+    }
+    function error(...args) {
+      console.error('[retrojs]', ...args);
+    }
 
-    async function setupTerminalAndWasm() {
-      let fontFamily = 'VT323, monospace';
-      try {
-        await loadFonts(['VT323']);
-      } catch (e) {
-        fontFamily = 'monospace';
+    // JS<->Go message passing
+    window.retrojs = window.retrojs || {};
+    window.retrojs.terminalWrite = function (text) {
+      log('terminalWrite:', text);
+      if (terminalRef.current) terminalRef.current.write(text);
+    };
+    window.retrojs.sendToGo = function (msgType, payload) {
+      log('sendToGo:', msgType, payload);
+      if (typeof window.retrojs_sendToGo === 'function') {
+        window.retrojs_sendToGo(msgType, payload);
+      } else {
+        warn('retrojs_sendToGo is not a function');
       }
-      term = new Terminal({
-        cols: 80,
-        rows: 25,
-        cursorBlink: true,
-        fontFamily,
-        theme: {
-          foreground: '#39FF14',
-          cursor: '#39FF14',
-          cursorAccent: '#181a1b'
-        },
-        scrollback: 0
-      });
-      webFontsAddon = new WebFontsAddon();
-      term.loadAddon(webFontsAddon);
-      term.open(terminalRef.current);
-      window.retrojs = window.retrojs || {};
-      window.retrojs.term = term;
-      term.onData(data => {
-        window.retrojs.sendToGo && window.retrojs.sendToGo('consoleIn', data);
-      });
+    };
+    window.retrojs_receiveFromGo = function (msgType, payload) {
+      log('receiveFromGo:', msgType, payload);
+      switch (msgType) {
+        case 'consoleOut':
+          window.retrojs.terminalWrite(payload);
+          break;
+        case 'machineStatus':
+          log('Machine status:', payload);
+          break;
+        case 'diskRead':
+          break;
+        case 'diskWrite':
+          break;
+        default:
+          warn('Unknown message from Go:', msgType, payload);
+      }
+    };
 
-      // JS<->Go message passing
-      window.retrojs.terminalWrite = function (text) {
-        if (term) term.write(text);
-      };
-      window.retrojs.sendToGo = function (msgType, payload) {
-        if (typeof window.retrojs_sendToGo === 'function') {
-          window.retrojs_sendToGo(msgType, payload);
-        }
-      };
-      window.retrojs_receiveFromGo = function (msgType, payload) {
-        switch (msgType) {
-          case 'consoleOut':
-            window.retrojs.terminalWrite(payload);
-            break;
-          case 'machineStatus':
-            console.log('Machine status:', payload);
-            break;
-          case 'diskRead':
-            break;
-          case 'diskWrite':
-            break;
-          default:
-            console.warn('Unknown message from Go:', msgType, payload);
-        }
-      };
-
-      // Start Go WASM after everything is ready
+    // Start Go WASM after everything is ready
+    let go, goInstance;
+    function startWasm() {
+      const isDev = import.meta.env.MODE === 'development';
+      const wasmUrl = isDev ? `main.wasm?v=${Date.now()}` : 'main.wasm';
       if (typeof Go !== 'undefined') {
         go = new Go();
         if ('instantiateStreaming' in WebAssembly) {
-          const result = await WebAssembly.instantiateStreaming(fetch('main.wasm'), go.importObject);
-          goInstance = go.run(result.instance);
+          WebAssembly.instantiateStreaming(fetch(wasmUrl), go.importObject).then(result => {
+            log('WASM loaded via instantiateStreaming');
+            goInstance = go.run(result.instance);
+          }).catch(e => error('WASM instantiateStreaming failed:', e));
         } else {
-          const response = await fetch('main.wasm');
-          const bytes = await response.arrayBuffer();
-          const result = await WebAssembly.instantiate(bytes, go.importObject);
-          goInstance = go.run(result.instance);
+          fetch(wasmUrl).then(response => response.arrayBuffer()).then(bytes => {
+            WebAssembly.instantiate(bytes, go.importObject).then(result => {
+              log('WASM loaded via instantiate');
+              goInstance = go.run(result.instance);
+            }).catch(e => error('WASM instantiate failed:', e));
+          }).catch(e => error('Fetching main.wasm failed:', e));
         }
-        wasmLoaded = true;
       } else {
-        console.error('Go WASM runtime (wasm_exec.js) not loaded!');
+        error('Go WASM runtime (wasm_exec.js) not loaded!');
       }
     }
 
-    setupTerminalAndWasm();
-    return () => {
-      if (term) term.dispose();
-      // No need to clean up WASM for now
-    };
+    // Ensure message-passing is set up before WASM starts
+    setTimeout(startWasm, 0);
+    // No cleanup for WASM needed
   }, []);
 
-  return (
-    <div className="terminal" id="terminal">
-      <div className="inner" ref={terminalRef}></div>
-    </div>
-  );
+  // Pass onData handler to Terminal for input
+  const handleData = data => {
+    window.retrojs.sendToGo && window.retrojs.sendToGo('consoleIn', data);
+  };
+
+  return <Terminal ref={terminalRef} onData={handleData} />;
 }

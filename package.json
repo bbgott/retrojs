@@ -6,10 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite --host",
-    "prebuild": "GOOS=js GOARCH=wasm go build -o static/main.wasm ./cmd/wasm && cp $(go env GOROOT)/lib/wasm/wasm_exec.js static/",
+    "prebuild": "make build",
     "build": "vite build",
     "serve": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "make clean && rm -rf dist"
   },
   "repository": {
     "type": "git",
