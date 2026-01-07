@@ -23,6 +23,10 @@ window.retrojs_receiveFromGo = function (msgType, payload) {
     case 'consoleOut':
       window.retrojs.terminalWrite(payload);
       break;
+    case 'machineStatus':
+      // Handle machine status (ok/error)
+      console.log('Machine status:', payload);
+      break;
     case 'diskRead':
       // Future: handle disk read
       break;

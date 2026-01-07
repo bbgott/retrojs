@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"syscall/js"
 )
 
@@ -9,6 +10,23 @@ func sendMessageToJS(msgType, payload string) {
 	js.Global().Call("retrojs_receiveFromGo", msgType, payload)
 }
 
+// EmulatorConfig holds the machine definition/configuration
+type EmulatorConfig struct {
+	MachineType string   `json:"machineType"`
+	CPU         string   `json:"cpu"`
+	RAM         int      `json:"ram"`
+	Peripherals []string `json:"peripherals"`
+	FrontPanel  bool     `json:"frontPanel"`
+}
+
+// Emulator is a stub for the emulator core
+type Emulator struct {
+	Config EmulatorConfig
+	// TODO: Add registers, memory, peripherals, etc.
+}
+
+var emulator *Emulator
+
 // receiveMessageFromJS is a Go function exposed to JS for receiving messages from JS
 func receiveMessageFromJS(_ js.Value, args []js.Value) interface{} {
 	if len(args) < 2 {
@@ -16,8 +34,17 @@ func receiveMessageFromJS(_ js.Value, args []js.Value) interface{} {
 	}
 	msgType := args[0].String()
 	payload := args[1].String()
-	// Handle different message types here
 	switch msgType {
+	case "defineMachine":
+		// Parse config and (re)initialize emulator
+		var config EmulatorConfig
+		err := json.Unmarshal([]byte(payload), &config)
+		if err != nil {
+			sendMessageToJS("machineStatus", "error: "+err.Error())
+			return nil
+		}
+		emulator = &Emulator{Config: config}
+		sendMessageToJS("machineStatus", "ok")
 	case "consoleIn":
 		// For now, just echo input back to terminal
 		sendMessageToJS("consoleOut", payload)
