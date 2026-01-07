@@ -29,7 +29,12 @@
   },
   "homepage": "https://github.com/bbgott/retrojs#readme",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.9",
     "@fontsource/vt323": "^5.2.7",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "@xterm/addon-web-fonts": "^0.1.0",
     "@xterm/xterm": "^6.1.0-beta.91",
     "react": "^19.2.3",

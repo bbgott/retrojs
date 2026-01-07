@@ -3,6 +3,11 @@ import { Terminal } from '@xterm/xterm';
 import { WebFontsAddon, loadFonts } from '@xterm/addon-web-fonts';
 import '@xterm/xterm/css/xterm.css';
 import '@fontsource/vt323';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 
 export default function App() {
   const terminalRef = useRef(null);
