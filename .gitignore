@@ -131,3 +131,4 @@ dist
 
 # WASM binaries
 *.wasm
+static/wasm_exec.js

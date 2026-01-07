@@ -30,21 +30,30 @@ cp $(go env GOROOT)/misc/wasm/wasm_exec.js static/
 npm install
 ```
 
-### 4. Build the production webapp
+
+### 4. Clean the build output (optional)
+
+If you want to remove the `dist/` directory and start with a fresh build, run:
+
+```bash
+npm run clean
+```
+
+### 5. Build the production webapp
 
 ```bash
 npm run build
 ```
 The production-ready files will be in the `dist/` directory.
 
-### 5. Run the production server for testing
+### 6. Run the production server for testing
 
 ```bash
 npm run serve
 ```
 This will serve the `dist/` directory at http://localhost:4173 (default).
 
-### 6. Run the development server (hot reload)
+### 7. Run the development server (hot reload)
 
 ```bash
 npm run dev
