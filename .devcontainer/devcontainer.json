@@ -5,7 +5,6 @@
 	"name": "Node.js, TypeScript, Go & Rust",
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
 	"features": {
-		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/devcontainers/features/rust:1": {
 			"version": "stable"
 		}
