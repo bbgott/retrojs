@@ -6,10 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite --host",
-    "prebuild": "GOOS=js GOARCH=wasm go build -o static/main.wasm ./cmd/wasm && cp $(go env GOROOT)/lib/wasm/wasm_exec.js static/",
+    "prebuild": "make build",
     "build": "vite build",
     "serve": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "make clean && rm -rf dist"
   },
   "repository": {
     "type": "git",
@@ -29,11 +29,19 @@
   },
   "homepage": "https://github.com/bbgott/retrojs#readme",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.9",
     "@fontsource/vt323": "^5.2.7",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "@xterm/addon-web-fonts": "^0.1.0",
-    "@xterm/xterm": "^6.1.0-beta.91"
+    "@xterm/xterm": "^6.1.0-beta.91",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
     "vite": "^7.3.0",
     "vite-plugin-static-copy": "^3.1.4"
   }
