@@ -53,7 +53,6 @@ export default function App() {
     // Start Go WASM after everything is ready
     let go, goInstance;
     function startWasm() {
-      const isDev = import.meta.env.MODE === 'development';
       const wasmUrl = isDev ? `main.wasm?v=${Date.now()}` : 'main.wasm';
       if (typeof Go !== 'undefined') {
         go = new Go();
