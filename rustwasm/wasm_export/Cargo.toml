@@ -1,0 +1,13 @@
+[package]
+name = "wasm_export"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+emucore = { path = "../emucore" }
+cpu_i8080 = { path = "../cpu_i8080" }
+cpu_z80 = { path = "../cpu_z80" }
