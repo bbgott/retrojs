@@ -6,7 +6,7 @@ use cpu_z80::{Z80, Z80Registers};
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = retrojs)]
-    fn receiveFromGo(msg_type: &str, payload: &str);
+    fn receiveFromRust(msg_type: &str, payload: &str);
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -51,10 +51,10 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                             debug_enabled: false,
                         });
                     }
-                    receiveFromGo("machineStatus", "ok");
+                    receiveFromRust("machineStatus", "ok");
                 }
                 Err(e) => {
-                    receiveFromGo("machineStatus", &format!("error: {}", e));
+                    receiveFromRust("machineStatus", &format!("error: {}", e));
                 }
             }
         }
@@ -65,7 +65,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                     emulator.debug_enabled = enabled;
                 }
             }
-            receiveFromGo("debugStatus", payload);
+            receiveFromRust("debugStatus", payload);
         }
         "memoryRead" => {
             let req: Result<serde_json::Value, _> = serde_json::from_str(payload);
@@ -81,7 +81,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                                             "addr": addr,
                                             "value": mem[addr as usize]
                                         });
-                                        receiveFromGo("memoryReadResult", &msg.to_string());
+                                        receiveFromRust("memoryReadResult", &msg.to_string());
                                     }
                                 }
                                 CpuType::Z80(cpu) => {
@@ -91,7 +91,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                                             "addr": addr,
                                             "value": mem[addr as usize]
                                         });
-                                        receiveFromGo("memoryReadResult", &msg.to_string());
+                                        receiveFromRust("memoryReadResult", &msg.to_string());
                                     }
                                 }
                                 _ => {}
@@ -107,11 +107,11 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                     match &emulator.cpu {
                         CpuType::I8080(cpu) => {
                             let reg_json = serde_json::to_string(cpu.get_registers()).unwrap();
-                            receiveFromGo("registers", &reg_json);
+                            receiveFromRust("registers", &reg_json);
                         }
                         CpuType::Z80(cpu) => {
                             let reg_json = serde_json::to_string(cpu.get_registers()).unwrap();
-                            receiveFromGo("registers", &reg_json);
+                            receiveFromRust("registers", &reg_json);
                         }
                         _ => {}
                     }
@@ -155,7 +155,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                                                 "addr": addr,
                                                 "value": value
                                             });
-                                            receiveFromGo("memoryWrite", &msg.to_string());
+                                            receiveFromRust("memoryWrite", &msg.to_string());
                                         }
                                     }
                                 }
@@ -168,7 +168,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
                                                 "addr": addr,
                                                 "value": value
                                             });
-                                            receiveFromGo("memoryWrite", &msg.to_string());
+                                            receiveFromRust("memoryWrite", &msg.to_string());
                                         }
                                     }
                                 }
@@ -180,7 +180,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
             }
         }
         "consoleIn" => {
-            receiveFromGo("consoleOut", payload);
+            receiveFromRust("consoleOut", payload);
         }
         _ => {}
     }
@@ -189,7 +189,7 @@ pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
 #[wasm_bindgen]
 pub fn send_test_pattern() {
     let pattern = generate_test_pattern();
-    receiveFromGo("consoleOut", &pattern);
+    receiveFromRust("consoleOut", &pattern);
 }
 
 fn generate_test_pattern() -> String {

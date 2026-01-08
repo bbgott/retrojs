@@ -11,3 +11,5 @@ wasm-bindgen = "0.2"
 emucore = { path = "../emucore" }
 cpu_i8080 = { path = "../cpu_i8080" }
 cpu_z80 = { path = "../cpu_z80" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

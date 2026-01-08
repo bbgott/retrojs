@@ -10,8 +10,11 @@ const Terminal = forwardRef(function Terminal(props, ref) {
 
   useImperativeHandle(ref, () => ({
     write: (text) => {
+      console.log('[Terminal] write called with:', text);
       if (termRef.current) {
-        termRef.current.write(text);
+        text.split('\n').forEach(line => {
+          termRef.current.write(line + '\r\n');
+        });
       }
     },
     focus: () => {
@@ -57,6 +60,7 @@ const Terminal = forwardRef(function Terminal(props, ref) {
     setupTerminal();
     return () => {
       disposed = true;
+      console.log('[Terminal] cleanup: disposing terminal');
       if (term) term.dispose();
     };
   }, [props.onData]);

@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 emucore = { path = "../emucore" }
+serde = { version = "1.0", features = ["derive"] }

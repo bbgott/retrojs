@@ -9,7 +9,8 @@
 		"ghcr.io/devcontainers/features/rust:1": {
 			"version": "stable"
 		}
-	}
+	},
+	"postCreateCommand": "cargo install wasm-pack"
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
