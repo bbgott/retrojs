@@ -7,11 +7,16 @@ import '@fontsource/vt323';
 const Terminal = forwardRef(function Terminal(props, ref) {
   const containerRef = useRef(null);
   const termRef = useRef(null);
+  const outputBuffer = useRef([]);
 
   useImperativeHandle(ref, () => ({
     write: (text) => {
+      console.log('[Terminal] write called with:', text);
       if (termRef.current) {
         termRef.current.write(text);
+      } else {
+        // Buffer output until terminal is ready
+        outputBuffer.current.push(text);
       }
     },
     focus: () => {
@@ -49,6 +54,13 @@ const Terminal = forwardRef(function Terminal(props, ref) {
       term.loadAddon(webFontsAddon);
       term.open(containerRef.current);
       termRef.current = term;
+      // Flush output buffer
+      if (outputBuffer.current.length > 0) {
+        outputBuffer.current.forEach(text => {
+          term.write(text);
+        });
+        outputBuffer.current = [];
+      }
       if (props.onData) {
         term.onData(props.onData);
       }
@@ -57,6 +69,7 @@ const Terminal = forwardRef(function Terminal(props, ref) {
     setupTerminal();
     return () => {
       disposed = true;
+      console.log('[Terminal] cleanup: disposing terminal');
       if (term) term.dispose();
     };
   }, [props.onData]);

@@ -1,0 +1,8 @@
+[package]
+name = "cpu_z80"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+emucore = { path = "../emucore" }
+serde = { version = "1.0", features = ["derive"] }

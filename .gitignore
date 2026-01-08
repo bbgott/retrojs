@@ -130,5 +130,4 @@ dist
 .pnp.*
 
 # WASM binaries
-*.wasm
-static/wasm_exec.js
+rustwasm/target

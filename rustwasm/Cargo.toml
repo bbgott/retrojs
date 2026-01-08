@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "emucore",
+    "cpu_i8080",
+    "cpu_z80",
+    "wasm_export"
+]
