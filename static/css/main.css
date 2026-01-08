@@ -29,7 +29,7 @@ body {
 /* Responsive overrides for mobile */
 @media (max-width: 600px) {
     .terminal {
-        justify-content: stretch;
+        justify-content: flex-start;
         width: 100vw;
         margin: 0;
     }
