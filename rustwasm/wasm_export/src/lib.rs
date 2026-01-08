@@ -1,13 +1,8 @@
+
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 use cpu_i8080::{I8080, I8080Registers};
 use cpu_z80::{Z80, Z80Registers};
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = retrojs)]
-    fn receiveFromRust(msg_type: &str, payload: &str);
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct EmulatorConfig {
@@ -24,172 +19,94 @@ enum CpuType {
     None,
 }
 
-struct Emulator {
+#[wasm_bindgen]
+pub struct Emulator {
     config: EmulatorConfig,
     cpu: CpuType,
     debug_enabled: bool,
 }
 
-static mut EMULATOR: Option<Emulator> = None;
-
 #[wasm_bindgen]
-pub fn retrojs_send_to_rust(msg_type: &str, payload: &str) {
-    match msg_type {
-        "defineMachine" => {
-            let config: Result<EmulatorConfig, _> = serde_json::from_str(payload);
-            match config {
-                Ok(cfg) => {
-                    let cpu = match cfg.cpu.as_str() {
-                        "i8080" => CpuType::I8080(I8080::new(cfg.ram)),
-                        "z80" => CpuType::Z80(Z80::new(cfg.ram)),
-                        _ => CpuType::None,
-                    };
-                    unsafe {
-                        EMULATOR = Some(Emulator {
-                            config: cfg,
-                            cpu,
-                            debug_enabled: false,
-                        });
-                    }
-                    receiveFromRust("machineStatus", "ok");
-                }
-                Err(e) => {
-                    receiveFromRust("machineStatus", &format!("error: {}", e));
-                }
-            }
-        }
-        "setDebug" => {
-            let enabled = payload == "on";
-            unsafe {
-                if let Some(emulator) = EMULATOR.as_mut() {
-                    emulator.debug_enabled = enabled;
-                }
-            }
-            receiveFromRust("debugStatus", payload);
-        }
-        "memoryRead" => {
-            let req: Result<serde_json::Value, _> = serde_json::from_str(payload);
-            if let Ok(req) = req {
-                if let Some(addr) = req.get("addr").and_then(|v| v.as_u64()) {
-                    unsafe {
-                        if let Some(emulator) = EMULATOR.as_ref() {
-                            match &emulator.cpu {
-                                CpuType::I8080(cpu) => {
-                                    let mem = cpu.get_memory();
-                                    if (addr as usize) < mem.len() {
-                                        let msg = serde_json::json!({
-                                            "addr": addr,
-                                            "value": mem[addr as usize]
-                                        });
-                                        receiveFromRust("memoryReadResult", &msg.to_string());
-                                    }
-                                }
-                                CpuType::Z80(cpu) => {
-                                    let mem = cpu.get_memory();
-                                    if (addr as usize) < mem.len() {
-                                        let msg = serde_json::json!({
-                                            "addr": addr,
-                                            "value": mem[addr as usize]
-                                        });
-                                        receiveFromRust("memoryReadResult", &msg.to_string());
-                                    }
-                                }
-                                _ => {}
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        "registersRead" => {
-            unsafe {
-                if let Some(emulator) = EMULATOR.as_ref() {
-                    match &emulator.cpu {
-                        CpuType::I8080(cpu) => {
-                            let reg_json = serde_json::to_string(cpu.get_registers()).unwrap();
-                            receiveFromRust("registers", &reg_json);
-                        }
-                        CpuType::Z80(cpu) => {
-                            let reg_json = serde_json::to_string(cpu.get_registers()).unwrap();
-                            receiveFromRust("registers", &reg_json);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        "registersWrite" => {
-            unsafe {
-                if let Some(emulator) = EMULATOR.as_mut() {
-                    match &mut emulator.cpu {
-                        CpuType::I8080(cpu) => {
-                            let regs: Result<I8080Registers, _> = serde_json::from_str(payload);
-                            if let Ok(regs) = regs {
-                                cpu.set_registers(regs);
-                            }
-                        }
-                        CpuType::Z80(cpu) => {
-                            let regs: Result<Z80Registers, _> = serde_json::from_str(payload);
-                            if let Ok(regs) = regs {
-                                cpu.set_registers(regs);
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        "memoryWrite" => {
-            let req: Result<serde_json::Value, _> = serde_json::from_str(payload);
-            if let Ok(req) = req {
-                if let (Some(addr), Some(value)) = (req.get("addr").and_then(|v| v.as_u64()), req.get("value").and_then(|v| v.as_u64())) {
-                    unsafe {
-                        if let Some(emulator) = EMULATOR.as_mut() {
-                            match &mut emulator.cpu {
-                                CpuType::I8080(cpu) => {
-                                    let mem = &mut cpu.memory;
-                                    if (addr as usize) < mem.len() {
-                                        mem[addr as usize] = value as u8;
-                                        if emulator.debug_enabled {
-                                            let msg = serde_json::json!({
-                                                "addr": addr,
-                                                "value": value
-                                            });
-                                            receiveFromRust("memoryWrite", &msg.to_string());
-                                        }
-                                    }
-                                }
-                                CpuType::Z80(cpu) => {
-                                    let mem = &mut cpu.memory;
-                                    if (addr as usize) < mem.len() {
-                                        mem[addr as usize] = value as u8;
-                                        if emulator.debug_enabled {
-                                            let msg = serde_json::json!({
-                                                "addr": addr,
-                                                "value": value
-                                            });
-                                            receiveFromRust("memoryWrite", &msg.to_string());
-                                        }
-                                    }
-                                }
-                                _ => {}
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        "consoleIn" => {
-            receiveFromRust("consoleOut", payload);
-        }
-        _ => {}
+impl Emulator {
+    #[wasm_bindgen(constructor)]
+    pub fn new(config_json: &str) -> Result<Emulator, JsValue> {
+        let config: EmulatorConfig = serde_json::from_str(config_json)
+            .map_err(|e| JsValue::from_str(&format!("Config error: {}", e)))?;
+        let cpu = match config.cpu.as_str() {
+            "i8080" => CpuType::I8080(I8080::new(config.ram)),
+            "z80" => CpuType::Z80(Z80::new(config.ram)),
+            _ => CpuType::None,
+        };
+        Ok(Emulator { config, cpu, debug_enabled: false })
     }
-}
 
-#[wasm_bindgen]
-pub fn send_test_pattern() {
-    let pattern = generate_test_pattern();
-    receiveFromRust("consoleOut", &pattern);
+    pub fn set_debug(&mut self, enabled: bool) {
+        self.debug_enabled = enabled;
+    }
+
+    pub fn memory_read(&self, addr: usize) -> Result<u8, JsValue> {
+        match &self.cpu {
+            CpuType::I8080(cpu) => cpu.memory.get(addr).copied().ok_or(JsValue::from_str("Out of bounds")),
+            CpuType::Z80(cpu) => cpu.memory.get(addr).copied().ok_or(JsValue::from_str("Out of bounds")),
+            _ => Err(JsValue::from_str("No CPU")),
+        }
+    }
+
+    pub fn memory_write(&mut self, addr: usize, value: u8) -> Result<(), JsValue> {
+        match &mut self.cpu {
+            CpuType::I8080(cpu) => {
+                if addr < cpu.memory.len() {
+                    cpu.memory[addr] = value;
+                    Ok(())
+                } else {
+                    Err(JsValue::from_str("Out of bounds"))
+                }
+            }
+            CpuType::Z80(cpu) => {
+                if addr < cpu.memory.len() {
+                    cpu.memory[addr] = value;
+                    Ok(())
+                } else {
+                    Err(JsValue::from_str("Out of bounds"))
+                }
+            }
+            _ => Err(JsValue::from_str("No CPU")),
+        }
+    }
+
+    pub fn registers_read(&self) -> Result<JsValue, JsValue> {
+        match &self.cpu {
+            CpuType::I8080(cpu) => {
+                let reg_json = serde_wasm_bindgen::to_value(cpu.get_registers())?;
+                Ok(reg_json)
+            }
+            CpuType::Z80(cpu) => {
+                let reg_json = serde_wasm_bindgen::to_value(cpu.get_registers())?;
+                Ok(reg_json)
+            }
+            _ => Err(JsValue::from_str("No CPU")),
+        }
+    }
+
+    pub fn registers_write(&mut self, regs: JsValue) -> Result<(), JsValue> {
+        match &mut self.cpu {
+            CpuType::I8080(cpu) => {
+                let regs: I8080Registers = serde_wasm_bindgen::from_value(regs)?;
+                cpu.set_registers(regs);
+                Ok(())
+            }
+            CpuType::Z80(cpu) => {
+                let regs: Z80Registers = serde_wasm_bindgen::from_value(regs)?;
+                cpu.set_registers(regs);
+                Ok(())
+            }
+            _ => Err(JsValue::from_str("No CPU")),
+        }
+    }
+
+    pub fn send_test_pattern(&self) -> String {
+        generate_test_pattern()
+    }
 }
 
 fn generate_test_pattern() -> String {

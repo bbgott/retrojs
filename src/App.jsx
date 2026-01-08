@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Terminal from './components/Terminal';
-import init, { retrojs_send_to_rust, send_test_pattern } from '../rustwasm/wasm_export/pkg/wasm_export.js';
+import init, { Emulator } from '../rustwasm/wasm_export/pkg/wasm_export.js';
 
 export default function App() {
   const terminalRef = useRef(null);
@@ -17,18 +17,84 @@ export default function App() {
       console.error('[retrojs]', ...args);
     }
 
+
     window.retrojs = window.retrojs || {};
     window.retrojs.terminalWrite = function (text) {
       log('terminalWrite:', text);
       if (terminalRef.current) terminalRef.current.write(text);
     };
 
-    window.retrojs.sendToRust = function (msgType, payload) {
+    // Emulator instance will be created after WASM loads
+    let emulatorInstance = null;
+    window.retrojs.emulator = null;
+
+    // Example config, should be replaced with real config as needed
+    const defaultConfig = JSON.stringify({
+      machine_type: 'example',
+      cpu: 'i8080',
+      ram: 0x10000,
+      peripherals: [],
+      front_panel: false,
+    });
+
+    window.retrojs.sendToRust = async function (msgType, payload) {
       log('sendToRust:', msgType, payload);
-      retrojs_send_to_rust(msgType, payload);
+      if (!emulatorInstance) {
+        warn('Emulator not initialized');
+        return;
+      }
+      try {
+        switch (msgType) {
+          case 'defineMachine': {
+            // Re-create emulator with new config
+            emulatorInstance = new Emulator(payload);
+            window.retrojs.emulator = emulatorInstance;
+            window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('machineStatus', 'ok');
+            break;
+          }
+          case 'setDebug': {
+            emulatorInstance.set_debug(payload === 'on');
+            window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('debugStatus', payload);
+            break;
+          }
+          case 'memoryRead': {
+            const req = JSON.parse(payload);
+            const value = emulatorInstance.memory_read(req.addr);
+            const msg = JSON.stringify({ addr: req.addr, value });
+            window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('memoryReadResult', msg);
+            break;
+          }
+          case 'memoryWrite': {
+            const req = JSON.parse(payload);
+            emulatorInstance.memory_write(req.addr, req.value);
+            if (emulatorInstance.debug_enabled) {
+              const msg = JSON.stringify({ addr: req.addr, value: req.value });
+              window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('memoryWrite', msg);
+            }
+            break;
+          }
+          case 'registersRead': {
+            const regs = emulatorInstance.registers_read();
+            window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('registers', JSON.stringify(regs));
+            break;
+          }
+          case 'registersWrite': {
+            emulatorInstance.registers_write(JSON.parse(payload));
+            break;
+          }
+          case 'consoleIn': {
+            // For now, just echo to output
+            window.retrojs.receiveFromRust && window.retrojs.receiveFromRust('consoleOut', payload);
+            break;
+          }
+          default:
+            warn('Unknown message to Rust:', msgType, payload);
+        }
+      } catch (e) {
+        error('Error in sendToRust:', e);
+      }
     };
 
-    // Define receiveFromRust before WASM init
     window.retrojs.receiveFromRust = function (msgType, payload) {
       log('receiveFromRust:', msgType, payload);
       switch (msgType) {
@@ -50,13 +116,18 @@ export default function App() {
     async function startRustWasm() {
       try {
         await init();
-        if (send_test_pattern) send_test_pattern();
-        log('Rust WASM loaded');
+        emulatorInstance = new Emulator(defaultConfig);
+        window.retrojs.emulator = emulatorInstance;
+        log('Rust WASM loaded and Emulator instance created');
+        // Output test pattern to terminal on startup
+        if (window.retrojs.receiveFromRust && emulatorInstance.send_test_pattern) {
+          const pattern = emulatorInstance.send_test_pattern();
+          window.retrojs.receiveFromRust('consoleOut', pattern);
+        }
       } catch (e) {
         error('Rust WASM load failed:', e);
       }
     }
-
     setTimeout(startRustWasm, 0);
   }, []);
 
