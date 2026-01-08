@@ -87,14 +87,16 @@ func receiveMessageFromJS(_ js.Value, args []js.Value) interface{} {
 			Addr int `json:"addr"`
 		}
 		if err := json.Unmarshal([]byte(payload), &req); err == nil {
-			mem := emulator.CPU.GetMemory()
-			if req.Addr >= 0 && req.Addr < len(mem) {
-				msg := struct {
-					Addr  int  `json:"addr"`
-					Value byte `json:"value"`
-				}{Addr: req.Addr, Value: mem[req.Addr]}
-				resp, _ := json.Marshal(msg)
-				sendMessageToJS("memoryReadResult", string(resp))
+			if emulator != nil && emulator.CPU != nil {
+				mem := emulator.CPU.GetMemory()
+				if req.Addr >= 0 && req.Addr < len(mem) {
+					msg := struct {
+						Addr  int  `json:"addr"`
+						Value byte `json:"value"`
+					}{Addr: req.Addr, Value: mem[req.Addr]}
+					resp, _ := json.Marshal(msg)
+					sendMessageToJS("memoryReadResult", string(resp))
+				}
 			}
 		}
 	case "registersRead":
